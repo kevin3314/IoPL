@@ -12,8 +12,11 @@ let rec read_eval_print env =
     read_eval_print newenv
 
 let initial_env = 
-  Environment.extend "i" (IntV 1)
+   Environment.extend "iv" (IntV 4)
+  (Environment.extend "iii" (IntV 3)
+  (Environment.extend "ii" (IntV 2)
+  (Environment.extend "i" (IntV 1)
     (Environment.extend "v" (IntV 5) 
-       (Environment.extend "x" (IntV 10) Environment.empty))
+       (Environment.extend "x" (IntV 10) Environment.empty)))))
 
 let _ = read_eval_print initial_env
