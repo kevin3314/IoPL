@@ -16,8 +16,11 @@ type exp =
      if x<4 then 3 else x *)
   | LetExp of id * exp * exp
   | FunExp of id * exp
+  | RecFunExp of id * id * exp
   | AppExp of exp * exp
+  | LetRecExp of id * id * exp * exp
 
 type program = 
     Exp of exp
   | Decl of id * exp
+  | RecDecl of id * id * exp

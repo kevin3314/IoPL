@@ -1,0 +1,29 @@
+
+** Conflict (shift/reduce) in state 40.
+** Token involved: IN
+** This state is reached from toplevel after reading:
+
+LET ID EQ LET REC ID EQ FUN ID RARROW Expr 
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+toplevel 
+(?)
+
+** In state 40, looking ahead at IN, shifting is permitted
+** because of the following sub-derivation:
+
+LET ID EQ Expr SEMISEMI 
+          LetRecExpr 
+          LET REC ID EQ FUN ID RARROW Expr . IN Expr 
+
+** In state 40, looking ahead at IN, reducing production
+** RecFunExpr -> LET REC ID EQ FUN ID RARROW Expr 
+** is permitted because of the following sub-derivation:
+
+Expr SEMISEMI 
+LetExpr 
+LET ID EQ Expr IN Expr // lookahead token appears
+          RecFunExpr // lookahead token is inherited
+          LET REC ID EQ FUN ID RARROW Expr . 

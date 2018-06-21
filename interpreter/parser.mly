@@ -7,6 +7,7 @@ open Syntax
 %token IF THEN ELSE TRUE FALSE
 %token LET IN EQ
 %token FUN RARROW
+%token REC
 
 %token <int> INTV
 %token <Syntax.id> ID
@@ -24,6 +25,8 @@ Expr :
   | e=LetExpr { e }
   | e=LTExpr { e }
   | e=FunExpr { e }
+  | e=LetRecExpr { e }
+  | e=RecFunExpr { e }
 
 LTExpr : 
     l=PExpr LT r=PExpr { BinOp (Lt, l, r) }
@@ -56,3 +59,9 @@ LetExpr :
 
 FunExpr :
     FUN x=ID RARROW e1=Expr { FunExp(x, e1) }
+
+RecFunExpr :
+    LET REC x1=ID EQ FUN x2=ID RARROW e1=Expr { RecFunExp(x1,x2,e1) }
+
+LetRecExpr :
+    LET REC x1=ID EQ FUN x2=ID RARROW e1=Expr IN e2=Expr { LetRecExp(x1, x2, e1, e2) }
