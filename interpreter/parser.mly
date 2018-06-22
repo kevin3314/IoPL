@@ -8,6 +8,7 @@ open Syntax
 %token LET IN EQ
 %token FUN RARROW
 %token REC
+%token AND OR
 
 %token <int> INTV
 %token <Syntax.id> ID
@@ -27,6 +28,9 @@ Expr :
   | e=LTExpr { e }
   | e=FunExpr { e }
   | e=LetRecExpr { e }
+  | e=AndExpr { e }
+  | e=OrExpr { e }
+  
 
 LTExpr : 
     l=PExpr LT r=PExpr { BinOp (Lt, l, r) }
@@ -53,6 +57,12 @@ AExpr :
 
 IfExpr :
     IF c=Expr THEN t=Expr ELSE e=Expr { IfExp (c, t, e) }
+
+AndExpr :
+    e1=Expr AND AND e2=Expr { BinOp (And, e1, e2) }
+
+OrExpr :
+    e1=Expr OR OR e2=Expr { BinOp (Or, e1, e2) }
 
 LetExpr :
     LET x=ID EQ e1=Expr IN e2=Expr { LetExp(x, e1, e2) }

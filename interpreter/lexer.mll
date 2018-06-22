@@ -28,6 +28,8 @@ rule main = parse
 | "<" { Parser.LT }
 | "=" { Parser.EQ }
 | "->" { Parser.RARROW }
+| "&" {Parser.AND}
+| "|" {Parser.OR}
 
 | ['a'-'z'] ['a'-'z' '0'-'9' '_' '\'']*
     { let id = Lexing.lexeme lexbuf in

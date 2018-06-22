@@ -1,29 +1,185 @@
 
-** Conflict (shift/reduce) in state 40.
-** Token involved: IN
+** Conflict (shift/reduce) in state 54.
+** Tokens involved: OR AND
+** The following explanations concentrate on token OR.
 ** This state is reached from toplevel after reading:
 
-LET ID EQ LET REC ID EQ FUN ID RARROW Expr 
+LET ID EQ Expr IN Expr 
 
 ** The derivations that appear below have the following common factor:
 ** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
 
 toplevel 
+Expr SEMISEMI 
 (?)
 
-** In state 40, looking ahead at IN, shifting is permitted
-** because of the following sub-derivation:
-
-LET ID EQ Expr SEMISEMI 
-          LetRecExpr 
-          LET REC ID EQ FUN ID RARROW Expr . IN Expr 
-
-** In state 40, looking ahead at IN, reducing production
-** RecFunExpr -> LET REC ID EQ FUN ID RARROW Expr 
+** In state 54, looking ahead at OR, reducing production
+** LetExpr -> LET ID EQ Expr IN Expr 
 ** is permitted because of the following sub-derivation:
 
-Expr SEMISEMI 
+OrExpr 
+Expr OR OR Expr // lookahead token appears
+LetExpr // lookahead token is inherited
+LET ID EQ Expr IN Expr . 
+
+** In state 54, looking ahead at OR, shifting is permitted
+** because of the following sub-derivation:
+
 LetExpr 
-LET ID EQ Expr IN Expr // lookahead token appears
-          RecFunExpr // lookahead token is inherited
-          LET REC ID EQ FUN ID RARROW Expr . 
+LET ID EQ Expr IN Expr 
+                  OrExpr 
+                  Expr . OR OR Expr 
+
+** Conflict (shift/reduce) in state 49.
+** Tokens involved: OR AND
+** The following explanations concentrate on token OR.
+** This state is reached from toplevel after reading:
+
+LET REC ID EQ FUN ID RARROW Expr IN Expr 
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+toplevel 
+Expr SEMISEMI 
+(?)
+
+** In state 49, looking ahead at OR, reducing production
+** LetRecExpr -> LET REC ID EQ FUN ID RARROW Expr IN Expr 
+** is permitted because of the following sub-derivation:
+
+OrExpr 
+Expr OR OR Expr // lookahead token appears
+LetRecExpr // lookahead token is inherited
+LET REC ID EQ FUN ID RARROW Expr IN Expr . 
+
+** In state 49, looking ahead at OR, shifting is permitted
+** because of the following sub-derivation:
+
+LetRecExpr 
+LET REC ID EQ FUN ID RARROW Expr IN Expr 
+                                    OrExpr 
+                                    Expr . OR OR Expr 
+
+** Conflict (shift/reduce) in state 46.
+** Tokens involved: OR AND
+** The following explanations concentrate on token OR.
+** This state is reached from toplevel after reading:
+
+IF Expr THEN Expr ELSE Expr 
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+toplevel 
+Expr SEMISEMI 
+(?)
+
+** In state 46, looking ahead at OR, reducing production
+** IfExpr -> IF Expr THEN Expr ELSE Expr 
+** is permitted because of the following sub-derivation:
+
+OrExpr 
+Expr OR OR Expr // lookahead token appears
+IfExpr // lookahead token is inherited
+IF Expr THEN Expr ELSE Expr . 
+
+** In state 46, looking ahead at OR, shifting is permitted
+** because of the following sub-derivation:
+
+IfExpr 
+IF Expr THEN Expr ELSE Expr 
+                       OrExpr 
+                       Expr . OR OR Expr 
+
+** Conflict (shift/reduce) in state 40.
+** Tokens involved: OR AND
+** The following explanations concentrate on token OR.
+** This state is reached from toplevel after reading:
+
+Expr AND AND Expr 
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+toplevel 
+Expr SEMISEMI 
+(?)
+
+** In state 40, looking ahead at OR, reducing production
+** AndExpr -> Expr AND AND Expr 
+** is permitted because of the following sub-derivation:
+
+OrExpr 
+Expr OR OR Expr // lookahead token appears
+AndExpr // lookahead token is inherited
+Expr AND AND Expr . 
+
+** In state 40, looking ahead at OR, shifting is permitted
+** because of the following sub-derivation:
+
+AndExpr 
+Expr AND AND Expr 
+             OrExpr 
+             Expr . OR OR Expr 
+
+** Conflict (shift/reduce) in state 37.
+** Tokens involved: OR AND
+** The following explanations concentrate on token OR.
+** This state is reached from toplevel after reading:
+
+Expr OR OR Expr 
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+toplevel 
+Expr SEMISEMI 
+OrExpr 
+(?)
+
+** In state 37, looking ahead at OR, shifting is permitted
+** because of the following sub-derivation:
+
+Expr OR OR Expr 
+           OrExpr 
+           Expr . OR OR Expr 
+
+** In state 37, looking ahead at OR, reducing production
+** OrExpr -> Expr OR OR Expr 
+** is permitted because of the following sub-derivation:
+
+Expr OR OR Expr // lookahead token appears
+OrExpr // lookahead token is inherited
+Expr OR OR Expr . 
+
+** Conflict (shift/reduce) in state 34.
+** Tokens involved: OR AND
+** The following explanations concentrate on token OR.
+** This state is reached from toplevel after reading:
+
+FUN ID RARROW Expr 
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+toplevel 
+Expr SEMISEMI 
+(?)
+
+** In state 34, looking ahead at OR, reducing production
+** FunExpr -> FUN ID RARROW Expr 
+** is permitted because of the following sub-derivation:
+
+OrExpr 
+Expr OR OR Expr // lookahead token appears
+FunExpr // lookahead token is inherited
+FUN ID RARROW Expr . 
+
+** In state 34, looking ahead at OR, shifting is permitted
+** because of the following sub-derivation:
+
+FunExpr 
+FUN ID RARROW Expr 
+              OrExpr 
+              Expr . OR OR Expr 
