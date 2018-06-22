@@ -19,4 +19,9 @@ let initial_env =
     (Environment.extend "v" (IntV 5) 
        (Environment.extend "x" (IntV 10) Environment.empty)))))
 
-let _ = read_eval_print initial_env
+let rec rec_read_eval_print env =
+    try ( read_eval_print env ) with _ ->
+        Printf.printf "catch any error";
+        rec_read_eval_print env
+
+let _ = rec_read_eval_print initial_env                             
