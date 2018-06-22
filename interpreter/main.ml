@@ -20,8 +20,12 @@ let initial_env =
        (Environment.extend "x" (IntV 10) Environment.empty)))))
 
 let rec rec_read_eval_print env =
-    try ( read_eval_print env ) with _ ->
-        Printf.printf "catch any error";
+    try ( read_eval_print env ) with Error s ->
+        print_string s;
+        print_newline ();
         rec_read_eval_print env
+   | _ -> print_string "error !!";
+          print_newline ();
+          rec_read_eval_print env
 
 let _ = rec_read_eval_print initial_env                             
