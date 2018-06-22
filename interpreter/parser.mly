@@ -19,6 +19,7 @@ open Syntax
 toplevel :
     e=Expr SEMISEMI { Exp e }
   | LET x = ID EQ e=Expr SEMISEMI { Decl (x,e) }
+  | LET REC x1 = ID EQ FUN x2 = ID RARROW e=Expr SEMISEMI { RecDecl(x1,x2,e) }
 
 Expr :
     e=IfExpr { e }
@@ -26,7 +27,6 @@ Expr :
   | e=LTExpr { e }
   | e=FunExpr { e }
   | e=LetRecExpr { e }
-  | e=RecFunExpr { e }
 
 LTExpr : 
     l=PExpr LT r=PExpr { BinOp (Lt, l, r) }
@@ -59,9 +59,6 @@ LetExpr :
 
 FunExpr :
     FUN x=ID RARROW e1=Expr { FunExp(x, e1) }
-
-RecFunExpr :
-    LET REC x1=ID EQ FUN x2=ID RARROW e1=Expr { RecFunExp(x1,x2,e1) }
-
+    
 LetRecExpr :
     LET REC x1=ID EQ FUN x2=ID RARROW e1=Expr IN e2=Expr { LetRecExp(x1, x2, e1, e2) }

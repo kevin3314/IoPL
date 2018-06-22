@@ -53,10 +53,6 @@ let rec eval_exp env = function
     (* exp1　の評価結果を id の値として環境に追加して exp2 を評価 *)
     eval_exp (Environment.extend id value env) exp2
   | FunExp (id, exp) -> ProcV (id, exp, (ref env))
-  | RecFunExp (id1, id2, exp) ->
-        let dummyenv = ref Environment.empty in
-         ProcV(id1, exp, (ref (Environment.extend id1 (ProcV(id2, exp, dummyenv)) env)))
-  (* RecFunExp について要修正*)
   | AppExp (exp1, exp2) ->
         let funval = eval_exp env exp1 in
         let arg = eval_exp env exp2 in
@@ -80,3 +76,10 @@ let eval_decl env = function
     Exp e -> let v = eval_exp env e in ("-", env, v)
   | Decl (id, e) ->
         let v = eval_exp env e in (id, Environment.extend id v env, v)
+  | RecDecl (id1, id2, e) ->
+        let dummyenv = ref Environment.empty in
+        let newenv =
+            Environment.extend id1 (ProcV (id2, e, dummyenv)) env in
+        dummyenv := newenv;
+        let v = ProcV(id2,e,dummyenv) in
+            (id1, Environment.extend id1 v newenv, v)

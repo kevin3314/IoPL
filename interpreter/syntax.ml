@@ -16,7 +16,6 @@ type exp =
      if x<4 then 3 else x *)
   | LetExp of id * exp * exp
   | FunExp of id * exp
-  | RecFunExp of id * id * exp
   | AppExp of exp * exp
   | LetRecExp of id * id * exp * exp
 
