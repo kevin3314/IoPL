@@ -30,9 +30,9 @@ let rec apply_prim op arg1 arg2 = match op, arg1, arg2 with
   | Mult, _, _ -> err ("Both arguments must be integer: *")
   | Lt, IntV i1, IntV i2 -> BoolV (i1 < i2)
   | Lt, _, _ -> err ("Both arguments must be integer: <")
-  | And, BoolV i1, BoolV i2 -> BoolV (i1 & i2)
+  | And, BoolV i1, BoolV i2 -> BoolV ( if i1 = true then i2 else false)
   | And, _, _ -> err ("Both arguments must be boolean: &&")
-  | Or, BoolV i1, BoolV i2 -> BoolV (i1 or i2)
+  | Or, BoolV i1, BoolV i2 -> BoolV ( if i1 = true then true else i2)
   | Or, _, _ -> err ("Both arguments must be boolean: ||")
 
 let rec eval_exp env = function
@@ -42,9 +42,18 @@ let rec eval_exp env = function
   | ILit i -> IntV i
   | BLit b -> BoolV b
   | BinOp (op, exp1, exp2) -> 
+    ( match op with And -> 
+        let arg1 = eval_exp env exp1 in
+            if arg1 = BoolV (true) then 
+                let arg2 = eval_exp env exp2 in apply_prim op arg1 arg2
+            else BoolV (false)
+    | Or -> let arg1 = eval_exp env exp1 in
+                if arg1 = BoolV (true) then BoolV (true)
+                    else let arg2 = eval_exp env exp2 in apply_prim op arg1 arg2
+    | _ ->
       let arg1 = eval_exp env exp1 in
       let arg2 = eval_exp env exp2 in
-      apply_prim op arg1 arg2
+      apply_prim op arg1 arg2 ) 
   | IfExp (exp1, exp2, exp3) ->
       let test = eval_exp env exp1 in
         (match test with
@@ -76,8 +85,8 @@ let rec eval_exp env = function
     dummyenv := newenv;
     eval_exp newenv exp2
 
-let eval_decl env = function
-    Exp e -> let v = eval_exp env e in ("-", env, v)
+let rec eval_decl env = function
+    Exp e -> let v = eval_exp env e in ("-", env, v) 
   | Decl (id, e) ->
         let v = eval_exp env e in (id, Environment.extend id v env, v)
   | RecDecl (id1, id2, e) ->
@@ -87,3 +96,7 @@ let eval_decl env = function
         dummyenv := newenv;
         let v = ProcV(id2,e,dummyenv) in
             (id1, Environment.extend id1 v newenv, v)
+  | OnlyLetExp e -> 
+    (match e with Decl (x,e) -> eval_decl env Decl (x, e)
+     | NeoDecl (x, e1, e2) -> 
+         let v = eval_exp env e1 in eval_decl Environment.extend x e1 env Decl (x,e2))

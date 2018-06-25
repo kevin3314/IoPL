@@ -19,7 +19,11 @@ type exp =
   | AppExp of exp * exp
   | LetRecExp of id * id * exp * exp
 
+type letexp =
+    | Decl of id * exp
+    | NeoDecl of id * exp * letexp
+  
 type program = 
     Exp of exp
-  | Decl of id * exp
+  | OnlyLetExp of letexp
   | RecDecl of id * id * exp
