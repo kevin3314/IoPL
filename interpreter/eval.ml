@@ -11,6 +11,7 @@ type exval =
   | ProcV of id * exp * dnval Environment.t ref
 and dnval = exval
 
+
 exception Error of string
 
 let err s = raise (Error s)
@@ -20,6 +21,7 @@ let rec string_of_exval = function
     IntV i -> string_of_int i
   | BoolV b -> string_of_bool b
   | ProcV (a, b, c) -> "<fun>"
+  
   
 let pp_val v = print_string (string_of_exval v)
 
@@ -77,6 +79,7 @@ let rec eval_exp env = function
             | _ -> err ("Non-function value is applied"))
   | LetRecExp (id, para, exp1, exp2) ->
     (* ダミーの環境への参照を作る *)
+         
     let dummyenv = ref Environment.empty in
     (* 関数閉包を作り、idをこの関数兵法に写像するように現在の環境を拡張*)
     let newenv =
@@ -85,18 +88,30 @@ let rec eval_exp env = function
     dummyenv := newenv;
     eval_exp newenv exp2
 
+
+let rec eval_let env = function
+    Let(id, e) ->
+        let v = eval_exp env e in [(id, Environment.extend id v env, v)]
+  | RecLet(id, e, letex) ->
+        let v = eval_exp env e in
+        let part = (id, Environment.extend id v env, v) in
+        part :: eval_let (Environment.extend id v env) letex
+
 let rec eval_decl env = function
-    Exp e -> let v = eval_exp env e in ("-", env, v) 
+    Exp e -> let v = eval_exp env e in [("-", env, v)]
+  (*
   | Decl (id, e) ->
         let v = eval_exp env e in (id, Environment.extend id v env, v)
+  *)
+
   | RecDecl (id1, id2, e) ->
         let dummyenv = ref Environment.empty in
         let newenv =
             Environment.extend id1 (ProcV (id2, e, dummyenv)) env in
         dummyenv := newenv;
         let v = ProcV(id2,e,dummyenv) in
-            (id1, Environment.extend id1 v newenv, v)
+        [(id1, Environment.extend id1 v newenv, v)]
   | OnlyLetExp e -> 
-    (match e with Decl (x,e) -> eval_decl env Decl (x, e)
-     | NeoDecl (x, e1, e2) -> 
-         let v = eval_exp env e1 in eval_decl Environment.extend x e1 env Decl (x,e2))
+    (* 変数のidの列、式の列を受け取る.
+     [(id, Environment, v)::(id2,Environment2,v2):: ...]*)
+    eval_let env e

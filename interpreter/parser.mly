@@ -26,8 +26,8 @@ toplevel :
   | LET REC x1 = ID EQ FUN x2 = ID RARROW e=Expr SEMISEMI { RecDecl(x1,x2,e) }
 
 OnlyLetExpr :
-    LET x = ID EQ e=Expr { Decl (x,e) }
-  | LET x = ID EQ e1=Expr e2=OnlyLetExpr { NeoDecl (x, e1, e2) }
+    LET x = ID EQ e=Expr { Let (x,e) }
+  | LET x = ID EQ e1=Expr e2=OnlyLetExpr { RecLet(x, e1, e2) }
 
 Expr :
     e=IfExpr { e }
