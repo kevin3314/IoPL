@@ -1,13 +1,14 @@
 # IoPL
 ***
 
-## Ver 1.12
+## Ver 1.2
 ***
 ### 進捗  
 chapter3まで終了
-3.2.2,3.2.3
+必要な分星を集めた
+
 ### ToDo  
-あと2個星を集める
+レポート作成
 
 ### 
 このレポジトリは https://github.com/ksuenaga/IoPLMaterials を進めるための個人的なレポジトリです。  
