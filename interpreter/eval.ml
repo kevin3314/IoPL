@@ -112,6 +112,6 @@ let rec eval_decl env = function
         let v = ProcV(id2,e,dummyenv) in
         [(id1, Environment.extend id1 v newenv, v)]
   | OnlyLetExp e -> 
-    (* 変数のidの列、式の列を受け取る.
+     (* 変数のid,環境,式の組の列を受け取る.
      [(id, Environment, v)::(id2,Environment2,v2):: ...]*)
     eval_let env e

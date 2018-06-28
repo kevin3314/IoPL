@@ -1,6 +1,28 @@
 open Syntax
 open Eval
 
+let rec id_list l =
+    match l with [] -> []
+    | (id, env, v) :: rest -> id :: id_list rest
+
+let rec find_id (id, env, v) l =
+    match l with [] -> false
+    | (id2, env2, v2) :: rest -> 
+            if (id = id2) then true
+            else find_id (id, env, v) rest
+
+let rec remove_set (id, env, v) l =
+    match l with [] -> []
+    | (id2, env2, v2) :: rest ->
+            if (id = id2) then remove_set (id, env, v) rest
+            else ((id2, env2, v2) :: (remove_set (id, env, v) rest) )
+
+let rec rem_dup_list before after =
+    match before with [] -> after
+    | (id, env, v) :: rest ->
+            if (find_id (id, env, v) after) then rem_dup_list rest ((remove_set (id, env, v) after) @ [(id, env, v)])
+            else rem_dup_list rest (after @ [(id, env, v)])
+           
 let rec rec_eval_environment env eval_list =
     match eval_list with [] -> env
     | (id, newenv, v) :: rest ->
@@ -18,7 +40,8 @@ let rec read_eval_print env =
   let (id, newenv, v) = eval_decl env decl in
   *)
   let eval_list = eval_decl env decl in
-  let newenv = rec_eval_environment env eval_list in
+  let res_list = rem_dup_list eval_list [] in
+  let newenv = rec_eval_environment env res_list in
   (*
     Printf.printf "val %s = " id;
     pp_val v;
