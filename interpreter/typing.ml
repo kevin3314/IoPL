@@ -2,14 +2,24 @@ open Syntax
 
 exception Error of string
 
-(*
 type subst = (tyvar * ty) list
 
-let rec subst_type subst ty =
-    match ty with TyVar tyvar ->
-        | TyFun (ty1, ty2) -> 
-*)
+(* ある型の中の型変数を代入する関数 *)
+let rec insert_type (id, value) ty =
+    (match ty with TyVar x -> 
+                if x = id then value else TyVar x
+        | TyFun (left, right) ->
+                TyFun( insert_type (id,value) left, insert_type (id,value) right)
+        | TyInt -> TyInt
+        | TyBool -> TyBool ) 
 
+let rec subst_type subst ty =
+    match subst with [] -> ty
+        | (id, value) :: rest ->
+                let newty = insert_type (id, value) ty in
+                subst_type rest newty
+
+                
 let err s = raise (Error s)
 (* Type Environment *)
 type tyenv = ty Environment.t
