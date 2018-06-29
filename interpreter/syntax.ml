@@ -3,12 +3,36 @@ type id = string
 
 type binOp = Plus | Mult | Lt | And | Or
 
-(* type inference *)
-type ty = TyInt | TyBool
+type tyvar = int
 
-let pp_ty = function
+(* type inference *)
+type ty = TyInt | TyBool | TyVar of tyvar | TyFun of ty * ty
+
+(*
+type subset = ( tyvar * ty ) list
+
+let rec subst_type = 
+*)
+
+let rec pp_ty = function (* maybe wrong *)
     TyInt -> print_string "int"
   | TyBool -> print_string "bool"
+  | TyVar tyvar -> print_string "let"
+  | TyFun (ty1, ty2) -> pp_ty ty1; print_string "->"; pp_ty ty2
+
+let fresh_tyvar =
+    let counter = ref 0 in
+    let body () =
+        let v = !counter in
+        counter := v + 1; v
+    in body () 
+
+let rec freevar_ty ty = (* ty -> tyvar Myset.t *)
+    ( match ty with TyVar tyvar -> 
+                MySet.insert ( TyVar fresh_tyvar ) MySet.empty
+      | TyFun (ty1, ty2) -> 
+                MySet.insert (TyVar fresh_tyvar) ( freevar_ty ty2 )
+      | _ -> MySet.empty )
 
 type exp =
   | Var of id (* Var "x" --> x *)
