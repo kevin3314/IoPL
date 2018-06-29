@@ -12,13 +12,17 @@ let rec insert_type (id, value) ty =
                 TyFun( insert_type (id,value) left, insert_type (id,value) right)
         | TyInt -> TyInt
         | TyBool -> TyBool ) 
-
+(* 実際に型変数に対し写像の列を作用させる関数*)
 let rec subst_type subst ty =
     match subst with [] -> ty
         | (id, value) :: rest ->
                 let newty = insert_type (id, value) ty in
                 subst_type rest newty
 
+(* Ex 4.3.3 , 代入の組subset を返す*)
+(*
+let unify l =
+*)
                 
 let err s = raise (Error s)
 (* Type Environment *)
