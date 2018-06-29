@@ -8,16 +8,10 @@ type tyvar = int
 (* type inference *)
 type ty = TyInt | TyBool | TyVar of tyvar | TyFun of ty * ty
 
-(*
-type subset = ( tyvar * ty ) list
-
-let rec subst_type = 
-*)
-
 let rec pp_ty = function (* maybe wrong *)
     TyInt -> print_string "int"
   | TyBool -> print_string "bool"
-  | TyVar tyvar -> print_string "let"
+  | TyVar tyvar -> print_string "don't use"
   | TyFun (ty1, ty2) -> pp_ty ty1; print_string "->"; pp_ty ty2
 
 let fresh_tyvar =

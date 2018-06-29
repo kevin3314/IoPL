@@ -2,6 +2,14 @@ open Syntax
 
 exception Error of string
 
+(*
+type subst = (tyvar * ty) list
+
+let rec subst_type subst ty =
+    match ty with TyVar tyvar ->
+        | TyFun (ty1, ty2) -> 
+*)
+
 let err s = raise (Error s)
 (* Type Environment *)
 type tyenv = ty Environment.t
