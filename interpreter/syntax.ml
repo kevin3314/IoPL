@@ -3,6 +3,13 @@ type id = string
 
 type binOp = Plus | Mult | Lt | And | Or
 
+(* type inference *)
+type ty = TyInt | TyBool
+
+let pp_ty = function
+    TyInt -> print_string "int"
+  | TyBool -> print_string "bool"
+
 type exp =
   | Var of id (* Var "x" --> x *)
   | ILit of int (* ILit 3 --> 3 *)
