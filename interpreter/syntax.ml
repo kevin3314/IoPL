@@ -14,6 +14,7 @@ let rec pp_ty = function (* maybe wrong *)
   | TyVar tyvar -> print_string "don't use"
   | TyFun (ty1, ty2) -> pp_ty ty1; print_string "->"; pp_ty ty2
 
+(* Ex4.3.1 *)
 let fresh_tyvar =
     let counter = ref 0 in
     let body () =

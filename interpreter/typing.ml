@@ -12,7 +12,8 @@ let rec insert_type (id, value) ty =
                 TyFun( insert_type (id,value) left, insert_type (id,value) right)
         | TyInt -> TyInt
         | TyBool -> TyBool ) 
-(* 実際に型変数に対し写像の列を作用させる関数*)
+
+(* 実際に型変数に対し写像の列を作用させる関数 Ex4.3.2*)
 let rec subst_type subst ty =
     match subst with [] -> ty
         | (id, value) :: rest ->
