@@ -2,7 +2,17 @@ open Syntax
 
 exception Error of string
 
+let err s = raise (Error s)
+
 type subst = (tyvar * ty) list
+
+let rec map f = function
+    [] -> []
+    | x :: rest -> f x :: map f rest
+
+let rec newmap f = function
+    [] -> []
+    | (x, y)::rest -> (f x, f y)::(newmap f rest)
 
 (* ある型の中の型変数を代入する関数 *)
 let rec insert_type (id, value) ty =
@@ -13,19 +23,77 @@ let rec insert_type (id, value) ty =
         | TyInt -> TyInt
         | TyBool -> TyBool ) 
 
-(* 実際に型変数に対し写像の列を作用させる関数 Ex4.3.2*)
+(* 実際に型変数に対し写像の列を作用させる関数 (subset -> ty) -> ty Ex4.3.2*)
 let rec subst_type subst ty =
     match subst with [] -> ty
         | (id, value) :: rest ->
                 let newty = insert_type (id, value) ty in
                 subst_type rest newty
 
-(* Ex 4.3.3 , 代入の組subset を返す*)
-(*
-let unify l =
-*)
-                
-let err s = raise (Error s)
+(* Ex 4.3.3 , 代入の組subset を返す
+   (ty * ty) list -> subset*)
+
+let rec unify l = 
+    (match l with (ty1, ty2) :: rest ->
+        ( match ty1 with TyVar x ->
+            (match ty2 with TyFun(left,right) -> 
+                       let ftv =  freevar_ty (TyFun(left, right)) in
+                       let boo = MySet.member (TyVar x) ftv in
+                       if boo = true then 
+                            let tmp_subst = [(x, TyFun(left, right))] in
+                            let rec subst_type_tmp ty = subst_type tmp_subst ty in
+                            let new_list = newmap subst_type_tmp rest in
+                            (unify new_list)@[(TyVar x, TyFun(left, right))]
+                       else err("type error!!")
+
+            | TyInt -> let tmp_subst = [(x, TyInt)] in
+                       let rec subst_type_tmp ty = subst_type tmp_subst ty in
+                       let new_list = newmap subst_type_tmp rest in
+                       (unify new_list)@[(TyVar x, TyInt)]
+
+            | TyBool -> let tmp_subst = [(x, TyBool)] in
+                        let rec subst_type_tmp ty = subst_type tmp_subst ty in
+                        let new_list = newmap subst_type_tmp rest in
+                        (unify new_list)@[(TyVar x, TyBool)]
+
+            | TyVar y -> unify rest 
+
+            | _ (*error*)-> err("type error!!") ) 
+        
+        | TyInt -> 
+                (match ty2 with TyInt -> unify rest
+                 | TyBool -> err("type error!")
+                 | TyFun(left, right) -> err("type error!")
+                 | TyVar x ->   
+                         let tmp_subst = [(x, TyInt)] in
+                         let rec subst_type_tmp ty = subst_type tmp_subst ty in
+                         let new_list = newmap subst_type_tmp rest in
+                         (unify new_list)@[(TyVar x, TyInt)])
+        | TyBool ->
+                (match ty2 with TyInt -> err("type error!")
+                 | TyBool -> unify rest
+                 | TyFun(left, right) -> err("type error!")
+                 | TyVar x ->   
+                         let tmp_subst = [(x, TyBool)] in
+                         let rec subst_type_tmp ty = subst_type tmp_subst ty in
+                         let new_list = newmap subst_type_tmp rest in
+                         (unify new_list)@[(TyVar x, TyBool)] )
+
+         | TyFun(left, right) ->
+                (match ty2 with TyInt -> err("type error!")
+                 | TyBool -> err("type error!")
+                 | TyFun(left2, right2) -> unify ((left, left2)::(right, right2)::rest)
+                 | TyVar x ->   
+                       let ftv =  freevar_ty (TyFun(left, right)) in
+                       let boo = MySet.member (TyVar x) ftv in
+                       if boo = true then 
+                            let tmp_subst = [(x, TyFun(left, right))] in
+                            let rec subst_type_tmp ty = subst_type tmp_subst ty in
+                            let new_list = newmap subst_type_tmp rest in
+                            (unify new_list)@[(TyVar x, TyFun(left, right))]
+                       else err("type error!!"))
+        )
+     | _ -> [] )
 (* Type Environment *)
 type tyenv = ty Environment.t
 
@@ -73,6 +141,11 @@ let rec ty_exp tyenv = function
           let tyarg2 = ty_exp newtyenv exp2 in
           tyarg2
   | _ -> err ("Not Implemented!") 
+
+(*
+let ty_let tyenv = function
+    Let(id, e) ->  
+*)
 
 let ty_decl tyenv = function
     Exp e -> ty_exp tyenv e
