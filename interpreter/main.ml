@@ -27,7 +27,7 @@ let rec rem_dup_list before after =
 let rec rec_eval_environment env eval_list tyenv decl =
     match eval_list with [] -> env
     | (id, newenv, v) :: rest ->
-        let ty = ty_decl tyenv decl in
+        let (s,ty) = ty_decl tyenv decl in
         Printf.printf "val %s : " id;
         pp_ty ty;
         print_string " = ";
