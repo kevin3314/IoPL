@@ -40,22 +40,22 @@ let rec unify l =
             (match ty2 with TyFun(left,right) -> 
                        let ftv =  freevar_ty (TyFun(left, right)) in
                        let boo = MySet.member (TyVar x) ftv in
-                       if boo = true then 
+                       if boo = false then 
                             let tmp_subst = [(x, TyFun(left, right))] in
                             let rec subst_type_tmp ty = subst_type tmp_subst ty in
                             let new_list = newmap subst_type_tmp rest in
-                            (unify new_list)@[(TyVar x, TyFun(left, right))]
+                            (unify new_list)@[(x, TyFun(left, right))]
                        else err("type error!!")
 
             | TyInt -> let tmp_subst = [(x, TyInt)] in
                        let rec subst_type_tmp ty = subst_type tmp_subst ty in
                        let new_list = newmap subst_type_tmp rest in
-                       (unify new_list)@[(TyVar x, TyInt)]
+                       (unify new_list)@[(x, TyInt)]
 
             | TyBool -> let tmp_subst = [(x, TyBool)] in
                         let rec subst_type_tmp ty = subst_type tmp_subst ty in
                         let new_list = newmap subst_type_tmp rest in
-                        (unify new_list)@[(TyVar x, TyBool)]
+                        (unify new_list)@[(x, TyBool)]
 
             | TyVar y -> unify rest 
 
@@ -69,7 +69,7 @@ let rec unify l =
                          let tmp_subst = [(x, TyInt)] in
                          let rec subst_type_tmp ty = subst_type tmp_subst ty in
                          let new_list = newmap subst_type_tmp rest in
-                         (unify new_list)@[(TyVar x, TyInt)])
+                         (unify new_list)@[(x, TyInt)])
         | TyBool ->
                 (match ty2 with TyInt -> err("type error!")
                  | TyBool -> unify rest
@@ -78,7 +78,7 @@ let rec unify l =
                          let tmp_subst = [(x, TyBool)] in
                          let rec subst_type_tmp ty = subst_type tmp_subst ty in
                          let new_list = newmap subst_type_tmp rest in
-                         (unify new_list)@[(TyVar x, TyBool)] )
+                         (unify new_list)@[(x, TyBool)] )
 
          | TyFun(left, right) ->
                 (match ty2 with TyInt -> err("type error!")
@@ -87,11 +87,11 @@ let rec unify l =
                  | TyVar x ->   
                        let ftv =  freevar_ty (TyFun(left, right)) in
                        let boo = MySet.member (TyVar x) ftv in
-                       if boo = true then 
+                       if boo = false then 
                             let tmp_subst = [(x, TyFun(left, right))] in
                             let rec subst_type_tmp ty = subst_type tmp_subst ty in
                             let new_list = newmap subst_type_tmp rest in
-                            (unify new_list)@[(TyVar x, TyFun(left, right))]
+                            (unify new_list)@[(x, TyFun(left, right))]
                        else err("type error!!"))
         )
      | _ -> [] )
@@ -122,7 +122,7 @@ let ty_prim op ty1 ty2 = match op with
   | And ->  ([(ty1, TyBool); (ty2, TyBool)], TyBool)
   | Or ->   ([(ty1, TyBool); (ty2, TyBool)], TyBool)
 
-let rec ty_exp tyenv (* return (S, type) *) = function
+let rec ty_exp tyenv (* return (subst, type) *) = function
     Var x ->
         (try ([], Environment.lookup x tyenv) with
           Environment.Not_bound -> err ("variable not bound: " ^ x))
@@ -141,16 +141,16 @@ let rec ty_exp tyenv (* return (S, type) *) = function
           let (s3, ty3) = ty_exp tyenv exp3 in
           (match ty1 with TyBool ->
                 (match ty2 with TyInt -> (* 途中 *)
-                    (match ty3 with TyInt -> let eqs = (eqs_of_subst s1)@(eqs_of_subst s2)@(eqs_of_subst s3)@[(TyVar ty1, TyBool); (TyVar ty2, TyInt); (TyVar ty3, TyInt)]in
+                    (match ty3 with TyInt -> let eqs = (eqs_of_subst s1)@(eqs_of_subst s2)@(eqs_of_subst s3)@[(ty1, TyBool); (ty2, TyInt); (ty3, TyInt)]in
                                              let s4 = unify eqs in (s4, TyInt)
                         | _ -> err("type error!"))
                  | TyBool ->
-                         (match ty3 with TyBool -> let eqs = (eqs_of_sunst s1)@(eqs_of_subst s2)@(eqs_of_subst s3)@[(TyVar ty1, TyBool);(TyVar ty2, TyBool);(TyVar ty3, TyBool)] in
+                         (match ty3 with TyBool -> let eqs = (eqs_of_subst s1)@(eqs_of_subst s2)@(eqs_of_subst s3)@[(ty1, TyBool);(ty2, TyBool);(ty3, TyBool)] in
                                                   let s4 = unify eqs in (s4, TyBool)
                                 | _ -> err("type error!"))
                  | TyFun(ty11, ty12) ->
-                         (match ty3 with TyFun(ty21, ty22) -> let eqs = (eqs_of_sunst s1)@(eqs_of_subst s2)@(eqs_of_subst s3)@[TyFun(ty11, ty12), TyFun(ty21, ty22)] in
-                                                  let s4 = unify eqs in (s4, subst_type s4 TyFun(ty11, ty12))
+                         (match ty3 with TyFun(ty21, ty22) -> let eqs = (eqs_of_subst s1)@(eqs_of_subst s2)@(eqs_of_subst s3)@[TyFun(ty11, ty12), TyFun(ty21, ty22)] in
+                                                  let s4 = unify eqs in (s4, (subst_type s4 (TyFun(ty11, ty12)))  )
                                 | _ -> err("type error!"))
                  | _ -> err("type error!")) 
 
@@ -175,11 +175,11 @@ let rec ty_exp tyenv (* return (S, type) *) = function
           let (s1, ty1) = ty_exp tyenv exp1 in
           let newenv = Environment.extend id ty1 tyenv in
           let (s2, ty2) = ty_exp newenv exp2 in
-          let eqs = (eqs_of_sunst s1)@(eqs_of_sunst s2) in
+          let eqs = (eqs_of_subst s1)@(eqs_of_subst s2) in
           let s3 = unify eqs in (s3, subst_type s3 ty2)
 
   | FunExp (id, exp) ->
-          let domty = TyVar (fresh_tyvar ()) in
+          let domty = TyVar (fresh_tyvar) in
           let (s, ranty) =
               ty_exp (Environment.extend id domty tyenv) exp in
               (s, TyFun ((subst_type s domty), ranty))
@@ -188,10 +188,10 @@ let rec ty_exp tyenv (* return (S, type) *) = function
           let (s2, ty2) = ty_exp tyenv exp2 in
           (match ty1 with TyFun(t11, t12) ->
                    if t11 = ty2 then
-                       let eqs = (eqs_of_sunst s1)@(eqs_of_sunst s2) in
-                       let s3 = unify eqs in (s3, subst_type s3 TyFun(t11, t12)) 
-                   else error("type error!")
-              | _ -> error("type error!"))
+                       let eqs = (eqs_of_subst s1)@(eqs_of_subst s2) in
+                       let s3 = unify eqs in (s3, subst_type s3 (TyFun(t11, t12))) 
+                   else err("type error!")
+              | _ -> err("type error!"))
   | _ -> err ("Not Implemented!") 
 
 (*
