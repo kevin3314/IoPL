@@ -24,17 +24,17 @@ let rec rem_dup_list before after =
             if (find_id (id, env, v) after) then rem_dup_list rest ((remove_set (id, env, v) after) @ [(id, env, v)])
             else rem_dup_list rest (after @ [(id, env, v)])
            
-let rec rec_eval_environment env eval_list tyenv decl =
-    match eval_list with [] -> env
+let rec rec_eval_environment env tyenv eval_list type_list =
+    match eval_list with [] -> (env, tyenv)
     | (id, newenv, v) :: rest ->
-        let (s,ty) = ty_decl tyenv decl in
-        Printf.printf "val %s : " id;
-        pp_ty ty;
-        print_string " = ";
-        pp_val v;
-        print_newline();
-        let newenv = Environment.extend id v env in
-        rec_eval_environment newenv rest tyenv decl
+            match type_list with [] -> (env, tyenv)
+            | (id2, newtyenv, t) :: rest2 -> 
+                Printf.printf "val %s : " id;
+                pp_ty t;
+                print_string " = ";
+                pp_val v;
+                print_newline();
+                rec_eval_environment newenv newtyenv rest rest2
 
 let rec read_eval_print env tyenv =
   print_string "# ";
@@ -44,14 +44,18 @@ let rec read_eval_print env tyenv =
   let (id, newenv, v) = eval_decl env decl in
   *)
   let eval_list = eval_decl env decl in
-  let res_list = rem_dup_list eval_list [] in
-  let newenv = rec_eval_environment env res_list tyenv decl in
+  let val_list = rem_dup_list eval_list [] in
+  let type_list = ty_decl tyenv decl in
+  let ty_list = rem_dup_list eval_list [] in
+  let (newenv, newtyenv) = rec_eval_environment env tyenv val_list type_list (*have to debug rem_dup_list*) in
+
+  (* serve value set, type set *)
   (*
     Printf.printf "val %s = " id;
     pp_val v;
     print_newline();
   *)
-    read_eval_print newenv tyenv
+    read_eval_print newenv newtyenv
 
 let initial_env = 
    Environment.extend "iv" (IntV 4)
@@ -71,7 +75,7 @@ let rec rec_read_eval_print env tyenv =
         print_string s;
         print_newline ();
         rec_read_eval_print env tyenv
-   | _ -> print_string "error !!";
+   | _ -> print_string "some error !!";
           print_newline ();
           rec_read_eval_print env tyenv
 

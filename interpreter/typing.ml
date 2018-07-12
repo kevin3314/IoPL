@@ -1,8 +1,6 @@
 open Syntax
+open Eval
 
-exception Error of string
-
-let err s = raise (Error s)
 
 
 type subst = (tyvar * ty) list
@@ -34,7 +32,9 @@ let rec subst_type subst ty =
 (* Ex 4.3.3 , 代入の組subset を返す
    (ty * ty) list -> subset*)
 
-let rec unify l = 
+let rec unify l = (* 
+    print_string "unifying...";
+    print_newline(); *)
     (match l with (ty1, ty2) :: rest ->
         ( match ty1 with TyVar x ->
             (match ty2 with TyFun(left,right) -> 
@@ -45,7 +45,7 @@ let rec unify l =
                             let rec subst_type_tmp ty = subst_type tmp_subst ty in
                             let new_list = newmap subst_type_tmp rest in
                             (unify new_list)@[(x, TyFun(left, right))]
-                       else err("type error!!")
+                       else err("unify error!! : ftv error")
 
             | TyInt -> let tmp_subst = [(x, TyInt)] in
                        let rec subst_type_tmp ty = subst_type tmp_subst ty in
@@ -57,23 +57,24 @@ let rec unify l =
                         let new_list = newmap subst_type_tmp rest in
                         (unify new_list)@[(x, TyBool)]
 
-            | TyVar y -> unify rest 
+            | TyVar y ->  (match rest with z -> (unify (z@[(TyVar x, TyVar y)]))
+                             | [] ->  [] )
 
-            | _ (*error*)-> err("type error!!") ) 
+            | _ (*error*)-> err("unify error!!") ) 
         
         | TyInt -> 
                 (match ty2 with TyInt -> unify rest
-                 | TyBool -> err("type error!")
-                 | TyFun(left, right) -> err("type error!")
+                 | TyBool -> err("unify error! : Int - Bool")
+                 | TyFun(left, right) -> err("unify error! : Int - Bool")
                  | TyVar x ->   
                          let tmp_subst = [(x, TyInt)] in
                          let rec subst_type_tmp ty = subst_type tmp_subst ty in
                          let new_list = newmap subst_type_tmp rest in
                          (unify new_list)@[(x, TyInt)])
         | TyBool ->
-                (match ty2 with TyInt -> err("type error!")
+                (match ty2 with TyInt -> err("unify error! : Bool - Int")
                  | TyBool -> unify rest
-                 | TyFun(left, right) -> err("type error!")
+                 | TyFun(left, right) -> err("unify error! : Bool - Fun")
                  | TyVar x ->   
                          let tmp_subst = [(x, TyBool)] in
                          let rec subst_type_tmp ty = subst_type tmp_subst ty in
@@ -81,8 +82,8 @@ let rec unify l =
                          (unify new_list)@[(x, TyBool)] )
 
          | TyFun(left, right) ->
-                (match ty2 with TyInt -> err("type error!")
-                 | TyBool -> err("type error!")
+                (match ty2 with TyInt -> err("unify error! : Fun - Int")
+                 | TyBool -> err("unify error! : Fun - Bool")
                  | TyFun(left2, right2) -> unify ((left, left2)::(right, right2)::rest)
                  | TyVar x ->   
                        let ftv =  freevar_ty (TyFun(left, right)) in
@@ -92,13 +93,16 @@ let rec unify l =
                             let rec subst_type_tmp ty = subst_type tmp_subst ty in
                             let new_list = newmap subst_type_tmp rest in
                             (unify new_list)@[(x, TyFun(left, right))]
-                       else err("type error!!"))
+                       else err("unify error!! : ftv error"))
         )
      | _ -> [] )
 
 (*eqs_of_subst : subst -> (ty * ty) list *)
 let rec  eqs_of_subst s =
+(*    print_string "eqs_of_subst...";
+    print_newline (); *)
     match s with (left, right)::rest -> (TyVar left, right)::eqs_of_subst rest
+    |  [] -> []
 
 (*subst_eqs: subst -> (ty * ty) list -> (ty * ty) list *)
 let subst_eqs s eqs = let subst_type_tmp ty = subst_type s ty in
@@ -143,18 +147,18 @@ let rec ty_exp tyenv (* return (subst, type) *) = function
                 (match ty2 with TyInt -> (* 途中 *)
                     (match ty3 with TyInt -> let eqs = (eqs_of_subst s1)@(eqs_of_subst s2)@(eqs_of_subst s3)@[(ty1, TyBool); (ty2, TyInt); (ty3, TyInt)]in
                                              let s4 = unify eqs in (s4, TyInt)
-                        | _ -> err("type error!"))
+                        | _ -> err("type error! : IfExp"))
                  | TyBool ->
                          (match ty3 with TyBool -> let eqs = (eqs_of_subst s1)@(eqs_of_subst s2)@(eqs_of_subst s3)@[(ty1, TyBool);(ty2, TyBool);(ty3, TyBool)] in
                                                   let s4 = unify eqs in (s4, TyBool)
-                                | _ -> err("type error!"))
+                                | _ -> err("type error! : IfExp"))
                  | TyFun(ty11, ty12) ->
                          (match ty3 with TyFun(ty21, ty22) -> let eqs = (eqs_of_subst s1)@(eqs_of_subst s2)@(eqs_of_subst s3)@[TyFun(ty11, ty12), TyFun(ty21, ty22)] in
                                                   let s4 = unify eqs in (s4, (subst_type s4 (TyFun(ty11, ty12)))  )
-                                | _ -> err("type error!"))
-                 | _ -> err("type error!")) 
+                                | _ -> err("type error! : IfExp"))
+                 | _ -> err("type error! :IfExp ")) 
 
-            | _ -> err("type error!"))
+            | _ -> err("type error! : IfExp"))
           (*
           let tyarg1 = ty_exp tyenv exp1 in
           let tyarg2 = ty_exp tyenv exp2 in
@@ -190,16 +194,22 @@ let rec ty_exp tyenv (* return (subst, type) *) = function
                    if t11 = ty2 then
                        let eqs = (eqs_of_subst s1)@(eqs_of_subst s2) in
                        let s3 = unify eqs in (s3, subst_type s3 (TyFun(t11, t12))) 
-                   else err("type error!")
-              | _ -> err("type error!"))
+                   else err("type error! : AppExp")
+              | _ -> err("type error! : AppExp/Not function cannot be implemented"))
   | _ -> err ("Not Implemented!") 
 
-(*
-let ty_let tyenv = function
-    Let(id, e) ->  
-*)
+let rec ty_let tyenv = function
+    Let(id, e) -> let (s, t) = ty_exp tyenv e in [(id, Environment.extend id t tyenv, t)]
+  | RecLet(id, e, letex) ->
+          let (s, t) = ty_exp tyenv e in
+          let part = (id, Environment.extend id t tyenv, t) in
+          part :: ty_let (Environment.extend id t tyenv) letex
 
 let ty_decl tyenv = function
-    Exp e -> ty_exp tyenv e
+    Exp e -> (*  print_string "typing...";
+        print_newline (); *)
+        let (s, t) = ty_exp tyenv e in
+        [("-", tyenv, t)]
   (* | OnlyLetExp e -> ty_let tyenv e *)
-  | _ -> err ("Not Implemented!")
+  | OnlyLetExp e -> ty_let tyenv e
+  | _ -> err ("Sorry, not done")
