@@ -65,7 +65,7 @@ let rec unify l = (*
         | TyInt -> 
                 (match ty2 with TyInt -> unify rest
                  | TyBool -> err("unify error! : Int - Bool")
-                 | TyFun(left, right) -> err("unify error! : Int - Bool")
+                 | TyFun(left, right) -> err("unify error! : Int - Fun")
                  | TyVar x ->   
                          let tmp_subst = [(x, TyInt)] in
                          let rec subst_type_tmp ty = subst_type tmp_subst ty in
@@ -183,7 +183,8 @@ let rec ty_exp tyenv (* return (subst, type) *) = function
           let s3 = unify eqs in (s3, subst_type s3 ty2)
 
   | FunExp (id, exp) ->
-          let domty = TyVar (fresh_tyvar) in
+          let intmp = fresh_tyvar () in
+          let domty = TyVar intmp in
           let (s, ranty) =
               ty_exp (Environment.extend id domty tyenv) exp in
               (s, TyFun ((subst_type s domty), ranty))
@@ -193,7 +194,7 @@ let rec ty_exp tyenv (* return (subst, type) *) = function
           (match ty1 with TyFun(t11, t12) ->
                    if t11 = ty2 then
                        let eqs = (eqs_of_subst s1)@(eqs_of_subst s2) in
-                       let s3 = unify eqs in (s3, subst_type s3 (TyFun(t11, t12))) 
+                       let s3 = unify eqs in (s3, subst_type s3 t12) 
                    else err("type error! : AppExp")
               | _ -> err("type error! : AppExp/Not function cannot be implemented"))
   | _ -> err ("Not Implemented!") 

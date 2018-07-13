@@ -47,7 +47,7 @@ let rec read_eval_print env tyenv =
   let val_list = rem_dup_list eval_list [] in
   let type_list = ty_decl tyenv decl in
   let ty_list = rem_dup_list eval_list [] in
-  let (newenv, newtyenv) = rec_eval_environment env tyenv val_list type_list (*have to debug rem_dup_list*) in
+  let (newenv, newtyenv) = rec_eval_environment env tyenv val_list type_list(*have to debug rem_dup_list*) in
 
   (* serve value set, type set *)
   (*

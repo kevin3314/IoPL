@@ -8,26 +8,35 @@ type tyvar = int
 (* type inference *)
 type ty = TyInt | TyBool | TyVar of tyvar | TyFun of ty * ty
 
-let rec pp_ty = function (* maybe wrong *)
-    TyInt -> print_string "int"
-  | TyBool -> print_string "bool"
-  | TyVar tyvar -> print_string "'a"
-  | TyFun (ty1, ty2) -> pp_ty ty1; print_string " -> "; pp_ty ty2
+let rec pp_ty_tmp x num l = (match x with
+    TyInt -> print_string "int"; (num, [])
+  | TyBool -> print_string "bool"; (num, [])
+  | TyVar tyvar -> print_string "'";
+        (try (let v = List.assoc tyvar l in print_char(char_of_int(v+97)); 
+                    (num, l)) 
+        with _ -> print_char(char_of_int (num+97)); 
+                 (num+1, [(tyvar, num)]@l) )
+  | TyFun(ty1, ty2) -> let (num2, l2) = pp_ty_tmp ty1 num l in
+                       print_string " -> "; 
+                       pp_ty_tmp ty2 num2 l2 )
 
+
+let pp_ty x = pp_ty_tmp x 0 []
 
 (* Ex4.3.1 *)
-let fresh_tyvar =
-    let counter = ref 0 in
-    let body () =
-        let v = !counter in
-        counter := v + 1; v
-    in body () 
+
+ let fresh_tyvar =
+ let counter = ref 0 in
+ let body () =
+ let v = !counter in
+ counter := v + 1; v
+ in body
 
 let rec freevar_ty ty = (* ty -> tyvar Myset.t *)
     ( match ty with TyVar tyvar -> 
-                MySet.insert ( TyVar fresh_tyvar ) MySet.empty
-      | TyFun (ty1, ty2) -> 
-                MySet.insert (TyVar fresh_tyvar) ( freevar_ty ty2 )
+                MySet.insert (TyVar tyvar) MySet.empty
+      | TyFun (ty1, ty2) ->  MySet.union (freevar_ty ty1) (freevar_ty ty2)
+                
       | _ -> MySet.empty )
 
 type exp =
