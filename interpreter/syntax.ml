@@ -16,9 +16,16 @@ let rec pp_ty_tmp x num l = (match x with
                     (num, l)) 
         with _ -> print_char(char_of_int (num+97)); 
                  (num+1, [(tyvar, num)]@l) )
-  | TyFun(ty1, ty2) -> let (num2, l2) = pp_ty_tmp ty1 num l in
-                       print_string " -> "; 
-                       pp_ty_tmp ty2 num2 l2 )
+  | TyFun(ty1, ty2) -> (match ty1 with TyFun(t11,t12) ->
+                            print_string "(";
+                            let (num2, l2) = pp_ty_tmp ty1 num l in
+                            print_string ")";
+                            print_string " -> "; 
+                            pp_ty_tmp ty2 num2 l2 
+                        | _ -> 
+                            let (num2, l2) = pp_ty_tmp ty1 num l in
+                            print_string " -> ";
+                            pp_ty_tmp ty2 num2 l2 ))
 
 
 let pp_ty x = pp_ty_tmp x 0 []
@@ -35,7 +42,7 @@ let pp_ty x = pp_ty_tmp x 0 []
 let rec freevar_ty ty = (* ty -> tyvar Myset.t *)
     ( match ty with TyVar tyvar -> 
                 MySet.insert (TyVar tyvar) MySet.empty
-      | TyFun (ty1, ty2) ->  MySet.union (freevar_ty ty1) (freevar_ty ty2)
+      | TyFun (ty1, ty2) ->  MySet.union (freevar_ty ty1) (freevar_ty ty2) (* maybe wrong *)
                 
       | _ -> MySet.empty )
 
