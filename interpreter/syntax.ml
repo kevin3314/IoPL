@@ -41,7 +41,7 @@ let pp_ty x = pp_ty_tmp x 0 []
 
 let rec freevar_ty ty = (* ty -> tyvar Myset.t *)
     ( match ty with TyVar tyvar -> 
-                MySet.insert (TyVar tyvar) MySet.empty
+                MySet.singleton (TyVar tyvar)
       | TyFun (ty1, ty2) ->  MySet.union (freevar_ty ty1) (freevar_ty ty2) (* maybe wrong *)
                 
       | _ -> MySet.empty )
