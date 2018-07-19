@@ -55,14 +55,13 @@ let rec unify l = (*
     (match l with (ty1, ty2) :: rest ->
         ( match ty1 with TyVar x ->
             (match ty2 with TyFun(left,right) -> 
-                       let ftv =  freevar_ty (TyFun(left, right)) in
-                       let boo = MySet.member (TyVar x) ftv in
-                       if boo = false then 
+                       let boo = MySet.member (TyVar x) (freevar_ty (TyFun(left, right))) in
+                       if (boo = false) then 
                             let tmp_subst = [(x, TyFun(left, right))] in
                             let rec subst_type_tmp ty = subst_type tmp_subst ty in
                             let new_list = newmap subst_type_tmp rest in
                             (unify new_list)@[(x, TyFun(left, right))]
-                       else err("unify error!! : ftv error")
+                       else err("unify error!")
 
             | TyInt -> let tmp_subst = [(x, TyInt)] in
                        let rec subst_type_tmp ty = subst_type tmp_subst ty in
@@ -107,14 +106,14 @@ let rec unify l = (*
                  | TyVar x ->   
                        let ftv =  freevar_ty (TyFun(left, right)) in
                        let boo = MySet.member (TyVar x) ftv in
-                       if boo = false then 
+                       if (boo = false) then 
                             let tmp_subst = [(x, TyFun(left, right))] in
                             let rec subst_type_tmp ty = subst_type tmp_subst ty in
                             let new_list = newmap subst_type_tmp rest in
                             (unify new_list)@[(x, TyFun(left, right))]
-                       else err("unify error!! : ftv error"))
-        )
-     | _ -> [] )
+                       else err("unify error!")))
+       | _ -> [] )
+       
 
 (*eqs_of_subst : subst -> (ty * ty) list *)
 let rec  eqs_of_subst s =
@@ -188,7 +187,8 @@ let rec ty_exp tyenv (* return (subst, type) *) = function
           | _ ->
               let tmp_tyvar = fresh_tyvar () in
               let eqs = (eqs_of_subst s1)@(eqs_of_subst s2)@[(ty1, TyFun(ty2, TyVar tmp_tyvar))] in
-              let s3 = unify eqs in (s3, subst_type s3 (TyVar tmp_tyvar)))
+              let s3 = unify eqs in 
+              (s3, subst_type s3 (TyVar tmp_tyvar)))
 
   | _ -> err("type error! | Unknown")
 

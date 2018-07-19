@@ -5,17 +5,34 @@ type binOp = Plus | Mult | Lt | And | Or
 
 type tyvar = int
 
+exception Not_found
+
+let rec return l x = match l with (y,z)::rest ->
+                        if x = y then z else return rest x
+                    | [] ->  
+                            raise Not_found
+
 (* type inference *)
 type ty = TyInt | TyBool | TyVar of tyvar | TyFun of ty * ty
 
-let rec pp_ty_tmp x num l = (match x with
-    TyInt -> print_string "int"; (num, [])
-  | TyBool -> print_string "bool"; (num, [])
-  | TyVar tyvar -> print_string "'";
-        (try (let v = List.assoc tyvar l in print_char(char_of_int(v+97)); 
-                    (num, l)) 
-        with _ -> print_char(char_of_int (num+97)); 
+let stringval_of_int v =
+    Char.escaped (char_of_int(v+97))
+
+let rec sets_val_of_int v =
+    let w = (v / 26) in
+    if v < 26 then let x = (v mod 26) in stringval_of_int x
+    else let x = (v mod 26) in (sets_val_of_int w) ^ (stringval_of_int x)
+
+let rec pp_ty_tmp x num l = 
+    (match x with
+    TyInt -> print_string "int"; (num, l)
+  | TyBool -> print_string "bool"; (num, l)
+  | TyVar tyvar ->  
+            print_string "'";
+        (try let v = return l tyvar in print_string (sets_val_of_int v); (num, l)
+        with _ ->  print_string (sets_val_of_int (num));
                  (num+1, [(tyvar, num)]@l) )
+           
   | TyFun(ty1, ty2) -> (match ty1 with TyFun(t11,t12) ->
                             print_string "(";
                             let (num2, l2) = pp_ty_tmp ty1 num l in

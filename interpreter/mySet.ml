@@ -21,7 +21,7 @@ let rec remove x = function
 let diff xs ys =
   List.fold_left (fun zs x -> remove x zs) xs ys
 
-let member = List.memq
+let member = List.mem
 
 let rec map f = function
     [] -> []
